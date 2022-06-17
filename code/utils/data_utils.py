@@ -32,77 +32,6 @@ def load_npy(file_name):
     labels = data[:,-2:]
     data = data[:,:-2]
     return data, labels
-
-# def get_data(data_dict, tracked_points=[]):
-#     """
-#     Get data and labels from the data dictionary.
-
-#     Parameters
-#     ----------
-#     data_dict : dict
-#         Data from the wearable sensor system organized as a nested dictionary.
-#     tracked_point : list
-#         List of tracked points from which to use the data for classifying and predicting.
-#     """
-#     if not isinstance(tracked_points, list):
-#         tracked_points = [tracked_points]
-#     if len(tracked_points) == 0:
-#         return
-    
-#     for idx_tracked_point, tracked_point in enumerate(tracked_points):
-#         if idx_tracked_point > 0:
-#             acc_data = np.hstack((acc_data, data_dict["data"]["TimeMeasure1"]["Recording4"]["SU_INDIP"][tracked_point]["Acc"]))
-#             gyr_data = np.hstack((gyr_data, data_dict["data"]["TimeMeasure1"]["Recording4"]["SU_INDIP"][tracked_point]["Gyr"]))
-#         else:
-#             acc_data = data_dict["data"]["TimeMeasure1"]["Recording4"]["SU_INDIP"][tracked_point]["Acc"]
-#             gyr_data = data_dict["data"]["TimeMeasure1"]["Recording4"]["SU_INDIP"][tracked_point]["Gyr"]
-#     return acc_data, gyr_data
-
-# def get_labels(data_dict, type="events"):
-    
-#     # Classify just gait, ...
-#     if type == "gait":
-        
-#         # Get data to preallocate zeros array
-#         acc_data, _ = get_data(data_dict=data_dict, tracked_points=["LeftFoot"])
-        
-#         gt_labels = np.zeros((acc_data.shape[0], 1))
-#         for idx in range(len(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"])):
-#             idx_start = int(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["Start"] * SAMPLING_FREQUENCY)
-#             idx_end = int(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["End"] * SAMPLING_FREQUENCY)
-#             gt_labels[idx_start-1:idx_end,:] = 1
-#         return gt_labels
-    
-#     # ..., or each individual gait event
-#     else:
-        
-#         # Get reference timings of initial contacts
-#         ts_ICL, ts_ICR = [], []
-#         for idx in range(len(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"])):
-#             ts = data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["InitialContact_Event"]
-#             indices = [ind for ind, elem in enumerate(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["InitialContact_LeftRight"]) if elem == "Left"]
-#             ts_ICL += ts[indices].tolist()
-#             del indices
-#             indices = [ind for ind, elem in enumerate(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["InitialContact_LeftRight"]) if elem == "Right"]
-#             ts_ICR += ts[indices].tolist()
-#             del indices, ts
-            
-#         # Likewise for final contacts
-#         ts_FCL, ts_FCR = [], []
-#         for idx in range(len(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"])):
-#             ts = data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["FinalContact_Event"]
-#             indices = [ind for ind, elem in enumerate(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["FinalContact_LeftRight"]) if elem == "Left"]
-#             ts_FCL += ts[indices].tolist()
-#             del indices
-#             indices = [ind for ind, elem in enumerate(data_dict["data"]["TimeMeasure1"]["Recording4"]["Standards"]["INDIP"]["ContinuousWalkingPeriod"][idx]["FinalContact_LeftRight"]) if elem == "Right"]
-#             ts_FCR += ts[indices].tolist()
-#             del indices, ts
-        
-#         # Return dictionary of gait events
-#         return {"ICL": np.array([int(t * SAMPLING_FREQUENCY) for t in ts_ICL if not np.isnan(t)]), 
-#                 "ICR": np.array([int(t * SAMPLING_FREQUENCY) for t in ts_ICR if not np.isnan(t)]),
-#                 "FCL": np.array([int(t * SAMPLING_FREQUENCY) for t in ts_FCL if not np.isnan(t)]),
-#                 "FCR": np.array([int(t * SAMPLING_FREQUENCY) for t in ts_FCR if not np.isnan(t)])}
         
 def load_mat(file_name):
     """
@@ -175,4 +104,10 @@ def load_mat(file_name):
     # Call default loadmat from scipy.io module
     data_dict = scipy.io.loadmat(file_name, struct_as_record=False, squeeze_me=True)
     return _check_vars(data_dict)
-        
+
+def create_sequences(x, win_len, step_len):
+    outputs = []
+    for i in range(0, x.shape[0]-win_len+1, step_len):
+        outputs.append(x[i:i+win_len,:])
+        print(f"{i:>8d} : {i+win_len:>8d}")
+    return outputs

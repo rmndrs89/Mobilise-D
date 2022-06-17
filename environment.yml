@@ -1,4 +1,4 @@
-name: /home/robbin/Projects/Mobilise-D/envs
+name: .\envs
 channels:
   - conda-forge
   - defaults
@@ -9,4 +9,4 @@ dependencies:
   - numpy
   - tensorflow
   - scikit-learn
-prefix: /home/robbin/Projects/Mobilise-D/envs
+prefix: .\envs
