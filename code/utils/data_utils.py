@@ -1,4 +1,6 @@
+import os
 import numpy as np
+import random
 import scipy.io
 
 SAMPLING_FREQUENCY = 64. # Hz
@@ -9,9 +11,20 @@ def load_npy(file_name):
     The data columns correspond to the accelerometer and gyroscope
     data of the left and right foot, respectively.
     
-    The last two columns represented the labels, 
-    with the one-but-last column corresponding to continuous walking periods,
-    and the last column corresponding to specific gait events.
+    The last two columns represent the labels, 
+    with the one-but-last column corresponding to continuous walking periods (CWPs),
+    and the last column corresponding to specific gait events (GEs).
+    
+    For the CWPs the following convention is adopted:
+        0 : NULL class, no walking activity
+        1 : walking activity
+    
+    For the GEs the following convention is adopted:
+        0 : NULL class, no specific gait event
+        1 : left initial contact (ICL),
+        2 : left final contact (FCL),
+        3 : right initial contact (ICR),
+        4 : right final contact (FCR)
 
     Parameters
     ----------
@@ -105,9 +118,67 @@ def load_mat(file_name):
     data_dict = scipy.io.loadmat(file_name, struct_as_record=False, squeeze_me=True)
     return _check_vars(data_dict)
 
-def create_sequences(x, win_len, step_len):
+def create_sequences(values, win_len, step_len):
+    """
+    Create sequences of equal length for batch processing.
+
+    Parameters
+    ----------
+    values : (num_time_steps, num_channels) array
+        Sensor data organized with N time steps across D channels.
+    win_len : int
+        Window length given in number of samples.
+    step_len : int
+        Step length given in number of samples.
+
+    Returns
+    -------
+    outputs : list
+        List of numpy arrays, each of shape (win_len, num_channels).
+    """
     outputs = []
-    for i in range(0, x.shape[0]-win_len+1, step_len):
-        outputs.append(x[i:i+win_len,:])
-        print(f"{i:>8d} : {i+win_len:>8d}")
+    for i in range(0, values.shape[0]-win_len+1, step_len):
+        outputs.append(values[i:i+win_len,:])
     return outputs
+
+def load_data(path, sequence_length, overlap=0.0, test_size=None, ):
+    """
+    Load data from the Mobilise-D technical validation study.
+
+    Parameters
+    ----------
+    path : str
+        Root directory where the data are stored in custom .npy format.
+    test_size : float, default=None
+        Proportion of the files that are used for the test set.
+        If None, it will be set to 0.25.
+    """
+   
+    # Parse input arguments
+    seq_len = int(sequence_length*SAMPLING_FREQUENCY)
+    step_len = seq_len - int(overlap*seq_len)
+    test_size = 0.25 if test_size is None else test_size  # set proportion of test set
+    
+    # Get list of subject ids
+    sub_ids = [sub_id for sub_id in os.listdir(path) if sub_id.startswith('sub-')]
+    
+    # Split in test and train set
+    random.seed(123)
+    test_sub_ids = random.sample(sub_ids, int(test_size*len(sub_ids)))
+    train_sub_ids = [sub_id for sub_id in sub_ids if sub_id not in test_sub_ids]
+    
+    # Create train and test data
+    train_data = []
+    for sub_id in train_sub_ids:
+        
+        # Load data
+        with open(os.path.join(path, sub_id, sub_id+'.npy'), 'rb') as infile:
+            data = np.load(infile)
+            train_data = train_data + create_sequences(data, win_len=seq_len, step_len=step_len)
+    
+    test_data = []
+    for sub_id in test_sub_ids:
+        with open(os.path.join(path, sub_id, sub_id+'.npy'), 'rb') as infile:
+            data = np.load(infile)
+            test_data = test_data + create_sequences(data, win_len=seq_len, step_len=step_len)
+    return np.stack(train_data), np.stack(test_data)

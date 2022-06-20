@@ -1,39 +1,29 @@
-from turtle import back
 import numpy as np
-import random
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import os, sys
+import time
 
-from utils.data_utils import SAMPLING_FREQUENCY, load_npy
-
-from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator
+from utils.data_utils import SAMPLING_FREQUENCY, load_data
 
 ROOT_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/rawdata" if sys.platform == "linux" else "Z:\\MobiliseD_TVS\\rawdata"
-SEQUENCE_LENGTH = int(10 * SAMPLING_FREQUENCY)
 
 def main():
 
-    # Set seed
-    random.seed(123)
+    # Load data
+    start_time = time.time()
+    train_data, test_data = load_data(path=ROOT_DIR, sequence_length=10., overlap=0., test_size=0.2)
+    end_time = time.time()
+    print(f'Total time: {end_time - start_time:.2f} sec')
     
-    # Start GUI
-    # my_app = MyApp()
-
-    # Get list of subject ids
-    sub_ids = [sub_id for sub_id in os.listdir(ROOT_DIR) if sub_id.startswith("sub-")]
-    filenames_list = [[os.path.join(ROOT_DIR, sub_id, filename) for filename in os.listdir(os.path.join(ROOT_DIR, sub_id))][0] for sub_id in sub_ids]
+    # Split features and labels
+    train_features, train_labels = train_data[:,:,:-2], train_data[:,:,-2:]
+    train_labels_dict = {
+        'gait': np.expand_dims(train_labels[:,:,0], axis=-1),
+        'events': np.expand_dims(train_labels[:,:,1], axis=-1)
+    }
     
-    # Accumulate data over multiple files
-    data = []
-    for idx_file in range(len(filenames_list[:5])):
-                
-        # Load data
-        with open(filenames_list[idx_file], 'rb') as infile:
-            values = np.load(infile)
-        
-        for i in range(values.shape[0] - SEQUENCE_LENGTH + 1):
-            data.append(values[i:i+SEQUENCE_LENGTH,:])
-
+    
     return
     
 if __name__ == "__main__":
