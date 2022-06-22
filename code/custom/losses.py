@@ -1,24 +1,27 @@
 import tensorflow as tf
 from tensorflow import keras
-import tensorflow.keras.backend as K
+from keras import backend as K
 
-class MyWeightedCategoricalCrossentropy():
-    def __init__(self, weights, **kwargs):
-        self.weights = weights
+class MyWeightedCategoricalCrossentropy(keras.losses.Loss):
+    def __init__(self, weights=[], **kwargs):
         super().__init__(**kwargs)
+        self.weights = weights
     
     def call(self, y_true, y_pred):
-        loss = K.mean(K.categorical_crossentropy(y_true, y_pred) * (y_true + self.weights), axis=-1)
+        epsilon_ = tf.cast(K.epsilon(), dtype=y_pred.dtype)
+        y_pred = y_pred / tf.reduce_sum(y_pred, axis=-1, keepdims=True)
+        y_pred = tf.clip_by_value(y_pred, epsilon_, 1 - epsilon_)
+        loss = -tf.reduce_sum(y_true * tf.math.log(y_pred) * self.weights, axis=-1)
         return loss
     
     def get_config(self):
         base_config = super().get_config()
         return {**base_config, "weights": self.weights}
 
-class MyWeightedMeanSquaredError():
+class MyWeightedMeanSquaredError(keras.losses.Loss):
     def __init__(self, weights, **kwargs):
-        self.weights = weights
         super().__init__(**kwargs)
+        self.weights = weights
     
     def call(self, y_true, y_pred):
         loss = K.mean(K.mean(K.square(y_true - y_pred)) * (y_true + self.weights), axis=-1)
