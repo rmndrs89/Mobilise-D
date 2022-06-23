@@ -1,4 +1,6 @@
+from cgi import test
 import os
+from venv import create
 import numpy as np
 import random
 import scipy.io
@@ -118,13 +120,13 @@ def load_mat(file_name):
     data_dict = scipy.io.loadmat(file_name, struct_as_record=False, squeeze_me=True)
     return _check_vars(data_dict)
 
-def create_sequences(values, win_len, step_len):
+def create_sequences(data, win_len, step_len):
     """
     Create sequences of equal length for batch processing.
 
     Parameters
     ----------
-    values : (num_time_steps, num_channels) array
+    data : (nb_time_steps, nb_channels) array
         Sensor data organized with N time steps across D channels.
     win_len : int
         Window length given in number of samples.
@@ -133,15 +135,60 @@ def create_sequences(values, win_len, step_len):
 
     Returns
     -------
-    outputs : list
+    sequences : list
         List of numpy arrays, each of shape (win_len, num_channels).
     """
-    outputs = []
-    for i in range(0, values.shape[0]-win_len+1, step_len):
-        outputs.append(values[i:i+win_len,:])
-    return outputs
+    # Preliminary checks
+    assert isinstance(win_len, int)
+    step_len = win_len if step_len is None else step_len
 
-def load_data(path, sequence_length, overlap=0.0, test_size=None, ):
+    # Iterate over data array
+    sequences = []
+    for idx in range(0, data.shape[0] - win_len + 1, step_len):
+
+        # Append current data segment to list
+        sequences.append(data[idx:idx+win_len,:])
+    return sequences
+
+def create_batch_sequences(filenames, win_len, step_len=None):
+    """
+    Create batches of sequences of equal length for batch processing.
+
+    Parameters
+    ----------
+    data : (nb_time_steps, nb_channels) array
+        Sensor data organized with N time steps across D channels.
+    win_len : int
+        Window length given in number of samples.
+    step_len : int
+        Step length given in number of samples.
+
+    Returns
+    -------
+    batch_sequences : list
+        List of numpy arrays, each of shape (win_len, num_channels).
+    """
+    assert isinstance(win_len, int)
+
+    # Set step length
+    step_len = win_len if step_len is None else step_len
+
+    # Iterate over filenames
+    batch_sequences = []
+    for _, filename in enumerate(filenames):
+        
+        # Load data from file
+        with open(filename, 'rb') as infile:
+            data = np.load(infile)
+
+        # Create sequences of equal length
+        sequences = create_sequences(data, win_len=win_len, step_len=step_len)
+
+        # Add to overall list of sequences
+        batch_sequences += sequences
+    return batch_sequences
+
+def load_data(path, win_len, step_len=None, test_size=None):
     """
     Load data from the Mobilise-D technical validation study.
 
@@ -155,10 +202,9 @@ def load_data(path, sequence_length, overlap=0.0, test_size=None, ):
     """
    
     # Parse input arguments
-    seq_len = int(sequence_length*SAMPLING_FREQUENCY)
-    step_len = seq_len - int(overlap*seq_len)
-    test_size = 0.25 if test_size is None else test_size  # set proportion of test set
-    
+    step_len = win_len if step_len is None else step_len
+    test_size = 0.25 if test_size is None else test_size
+        
     # Get list of subject ids
     sub_ids = [sub_id for sub_id in os.listdir(path) if sub_id.startswith('sub-')]
     
@@ -168,17 +214,8 @@ def load_data(path, sequence_length, overlap=0.0, test_size=None, ):
     train_sub_ids = [sub_id for sub_id in sub_ids if sub_id not in test_sub_ids]
     
     # Create train and test data
-    train_data = []
-    for sub_id in train_sub_ids:
-        
-        # Load data
-        with open(os.path.join(path, sub_id, sub_id+'.npy'), 'rb') as infile:
-            data = np.load(infile)
-            train_data = train_data + create_sequences(data, win_len=seq_len, step_len=step_len)
-    
-    test_data = []
-    for sub_id in test_sub_ids:
-        with open(os.path.join(path, sub_id, sub_id+'.npy'), 'rb') as infile:
-            data = np.load(infile)
-            test_data = test_data + create_sequences(data, win_len=seq_len, step_len=step_len)
-    return np.stack(train_data), np.stack(test_data)
+    train_filenames = [os.path.join(path, sub_id, sub_id+'.npy') for sub_id in train_sub_ids]
+    train_dataset = np.stack(create_batch_sequences(train_filenames, win_len=win_len, step_len=step_len))
+    test_filenames = [os.path.join(path, sub_id, sub_id+'.npy') for sub_id in test_sub_ids]
+    test_dataset = np.stack(create_batch_sequences(test_filenames, win_len=win_len, step_len=step_len))
+    return (train_dataset[:,:,:-2], train_dataset[:,:,-2][..., np.newaxis]), (test_dataset[:,:,:-2], test_dataset[:,:,-2][..., np.newaxis])
