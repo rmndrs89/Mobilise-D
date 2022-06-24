@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-ROOT_DIR = "/gxfs_work1/cau/sukne964/Mobilise-D"
+# ROOT_DIR = "/gxfs_work1/cau/sukne964/Mobilise-D"
+ROOT_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/rawdata"
 WIN_LEN = int(10 * 60 * SAMPLING_FREQUENCY)
 
 def main():
