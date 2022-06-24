@@ -218,4 +218,4 @@ def load_data(path, win_len, step_len=None, test_size=None):
     train_dataset = np.stack(create_batch_sequences(train_filenames, win_len=win_len, step_len=step_len))
     test_filenames = [os.path.join(path, sub_id, sub_id+'.npy') for sub_id in test_sub_ids]
     test_dataset = np.stack(create_batch_sequences(test_filenames, win_len=win_len, step_len=step_len))
-    return (train_dataset[:,:,:-2], train_dataset[:,:,-2][..., np.newaxis]), (test_dataset[:,:,:-2], test_dataset[:,:,-2][..., np.newaxis])
+    return (train_dataset[:,:,:-2], train_dataset[:,:,-2][..., np.newaxis], train_dataset[:,:,-1][..., np.newaxis]), (test_dataset[:,:,:-2], test_dataset[:,:,-2][..., np.newaxis], test_dataset[:,:,-1][..., np.newaxis])

@@ -33,7 +33,8 @@ def main():
     # history = model.fit(x=x_train, y=y_train, batch_size=16, epochs=3, validation_data=(x_test, y_test), shuffle=True)
 
     hypermodel = TCNHyperModel(
-        nb_channels = x_train.shape[-1]
+        nb_channels = x_train.shape[-1],
+        nb_classes = 5
     )
 
     tuner = kt.RandomSearch(
