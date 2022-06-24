@@ -1,1 +1,16 @@
-<keras_tuner.engine.hyperparameters.HyperParameters object at 0x147bdfa89220>
+Results summary
+Results in training/runs/00/bare
+Showing 10 best trials
+<keras_tuner.engine.objective.Objective object at 0x14f6fcca6dc0>
+Trial summary
+Hyperparameters:
+nb_filters: 6
+Score: 0.005980008747428656
+Trial summary
+Hyperparameters:
+nb_filters: 5
+Score: 0.005981147987768054
+Trial summary
+Hyperparameters:
+nb_filters: 4
+Score: 0.006491785403341055
