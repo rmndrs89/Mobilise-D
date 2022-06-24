@@ -17,24 +17,19 @@ WIN_LEN = int(10 * 60 * SAMPLING_FREQUENCY)
 def main():
 
     # Load data
-    start_time = time.time()
-    (x_train, y_train), (x_test, y_test) = load_data(path=ROOT_DIR, win_len=WIN_LEN)
-    end_time = time.time()
+    train_data, test_data = load_data(path=ROOT_DIR, win_len=WIN_LEN)
 
-    # Create model
-    # inputs = tf.keras.Input(shape=(None, 12), name="inputs")
-    # tcn = TCN(return_sequences=True, name="tcn")(inputs)
-    # outputs = tf.keras.layers.Dense(1, activation="sigmoid", name="outputs")(tcn)
-    # model = tf.keras.Model(inputs=inputs, outputs=outputs, name="tcn_model")
-    # model.compile(loss="binary_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), metrics=["binary_accuracy"])
-    # model.summary()
-
-    # Fit model
-    # history = model.fit(x=x_train, y=y_train, batch_size=16, epochs=3, validation_data=(x_test, y_test), shuffle=True)
+    # Split features and labels
+    X_train, y1_train, y2_train = train_data
+    X_test, y1_test, y2_test = test_data
+    y2_train = tf.keras.utils.to_categorical(y2_train)
+    y2_test = tf.keras.utils.to_categorical(y2_test)
 
     hypermodel = TCNHyperModel(
-        nb_channels = x_train.shape[-1],
-        nb_classes = 5
+        nb_channels = X_train.shape[-1],
+        nb_classes = y2_train.shape[-1],
+        weights_1 = 0.01,
+        weights_2 = [0.04, 0.24, 0.24, 0.24, 0.24]
     )
 
     tuner = kt.RandomSearch(
@@ -47,14 +42,15 @@ def main():
         project_name = "bare"
     )
     tuner.search(
-        x_train,
-        y_train,
+        X_train,
+        {"gait_sequences": y1_train, "gait_events": y2_train},
         epochs = 5,
-        validation_data = [x_test, y_test],
+        validation_data = [X_test, {"gait_sequences": y1_test, "gait_events": y2_test}],
         verbose = 0
     )
-    print(f"{tuner.get_best_hyperparameters()[0]}")
-        
+
+    # Summarize tuner results
+    tuner.results_summary()
     return
     
 if __name__ == "__main__":

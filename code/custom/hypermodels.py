@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tcn import TCN
 import keras_tuner as kt
-from losses import MyWeightedMeanSquaredError, MyWeightedCategoricalCrossentropy
+from .losses import MyWeightedMeanSquaredError, MyWeightedCategoricalCrossentropy
 
 class TCNHyperModel(kt.HyperModel):
     def __init__(self, nb_channels, nb_classes, weights_1, weights_2):
