@@ -12,7 +12,11 @@ from utils.data_utils import SAMPLING_FREQUENCY, load_data
 
 # ROOT_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/rawdata" if sys.platform == "linux" else "Z:\\MobiliseD_TVS\\rawdata"
 ROOT_DIR = "/gxfs_work1/cau/sukne964/Mobilise-D"
-WIN_LEN = int(10 * 60 * SAMPLING_FREQUENCY)
+WIN_LEN = int(10 * SAMPLING_FREQUENCY)  # in samples
+EPOCHS = 150        # number of epochs to train for
+MAX_TRIALS = 10     # total number of trials to run during the search
+EXEC_PER_TRIAL = 5  # number of models that are built and fit for each trials
+early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=5, monitor="val_loss", mode="min")
 
 def main():
 
@@ -35,8 +39,8 @@ def main():
     tuner = kt.RandomSearch(
         hypermodel,
         objective = "val_loss",
-        max_trials = 3,
-        executions_per_trial = 2,
+        max_trials = MAX_TRIALS,
+        executions_per_trial = EXEC_PER_TRIAL,
         overwrite = True,
         directory = "training/runs/00",
         project_name = "bare"
@@ -44,8 +48,9 @@ def main():
     tuner.search(
         X_train,
         {"gait_sequences": y1_train, "gait_events": y2_train},
-        epochs = 5,
+        epochs = EPOCHS,
         validation_data = [X_test, {"gait_sequences": y1_test, "gait_events": y2_test}],
+        callbacks = [early_stopping_cb],
         verbose = 0
     )
 
