@@ -1,6 +1,4 @@
-from cgi import test
 import os
-from venv import create
 import numpy as np
 import random
 import scipy.io
@@ -200,6 +198,8 @@ def load_data(path, win_len, step_len=None, test_size=None):
         Proportion of the files that are used for the test set.
         If None, it will be set to 0.25.
     """
+    # Define mapping from subject id to study site
+    id_2_site = {'10': 'UNEW', '20': 'USFD', '30': 'TASMC', '40': 'CAU', '50': 'RBMF'}
    
     # Parse input arguments
     step_len = win_len if step_len is None else step_len
@@ -208,14 +208,35 @@ def load_data(path, win_len, step_len=None, test_size=None):
     # Get list of subject ids
     sub_ids = [sub_id for sub_id in os.listdir(path) if sub_id.startswith('sub-')]
     
-    # Split in test and train set
+    # Split subject ids per study site
+    sub_ids_per_site = {v: [] for k, v in id_2_site.items()}
+    for sub_id in sub_ids:
+        sub_ids_per_site[id_2_site[sub_id[4:6]]].append(sub_id)
+    
+    for s in list(sub_ids_per_site.keys()):
+        print(f"{s:s}: {len(sub_ids_per_site[s]):d}")
+    
+    # Split in test, validation and train set
     random.seed(123)
-    test_sub_ids = random.sample(sub_ids, int(test_size*len(sub_ids)))
-    train_sub_ids = [sub_id for sub_id in sub_ids if sub_id not in test_sub_ids]
+    test_sub_ids, val_sub_ids, train_sub_ids = [], [], []
+    for _, ids in sub_ids_per_site.items():
+        num_ids = int(len(ids)*test_size)  # total number of subjects for current study site
+        idxs = np.arange(len(ids))         # arange list of indexes
+        np.random.shuffle(idxs)            # randomly shuffle
+        test_sub_ids += [ids[idx] for idx in idxs[:num_ids]]  # take proportion of dataset for testing, validation, and training
+        val_sub_ids += [ids[idx] for idx in idxs[num_ids:2*num_ids]]
+        train_sub_ids += [sub_id for sub_id in ids if (sub_id not in test_sub_ids) and (sub_id not in val_sub_ids)]
+    
+    # test_sub_ids = random.sample(sub_ids, int(test_size*len(sub_ids)))
+    # train_sub_ids = [sub_id for sub_id in sub_ids if sub_id not in test_sub_ids]
     
     # Create train and test data
     train_filenames = [os.path.join(path, sub_id, sub_id+'.npy') for sub_id in train_sub_ids]
     train_dataset = np.stack(create_batch_sequences(train_filenames, win_len=win_len, step_len=step_len))
+    val_filenames = [os.path.join(path, sub_id, sub_id+'.npy') for sub_id in val_sub_ids]
+    val_dataset = np.stack(create_batch_sequences(val_filenames, win_len=win_len, step_len=step_len))
     test_filenames = [os.path.join(path, sub_id, sub_id+'.npy') for sub_id in test_sub_ids]
     test_dataset = np.stack(create_batch_sequences(test_filenames, win_len=win_len, step_len=step_len))
-    return (train_dataset[:,:,:-2], train_dataset[:,:,-2][..., np.newaxis], train_dataset[:,:,-1][..., np.newaxis]), (test_dataset[:,:,:-2], test_dataset[:,:,-2][..., np.newaxis], test_dataset[:,:,-1][..., np.newaxis])
+    return (train_dataset[:,:,:-2], train_dataset[:,:,-2][..., np.newaxis], train_dataset[:,:,-1][..., np.newaxis]), \
+        (val_dataset[:,:,:-2], val_dataset[:,:,-2][..., np.newaxis], val_dataset[:,:,-1][..., np.newaxis]), \
+            (test_dataset[:,:,:-2], test_dataset[:,:,-2][..., np.newaxis], test_dataset[:,:,-1][..., np.newaxis])

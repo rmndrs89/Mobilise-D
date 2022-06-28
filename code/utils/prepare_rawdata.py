@@ -6,7 +6,7 @@ import numpy as np
 from preprocessing import _resample
 import matplotlib.pyplot as plt
 
-ROOT_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/Free-Living"
+ROOT_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/sourcedata"
 DEST_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/rawdata"
 
 SAMPLING_FREQUENCY = 64.0 # Hz
@@ -115,8 +115,12 @@ def parse_file(file_name, dest_dir="", visualize=False):
     # Save data and labels
     if not os.path.isdir(os.path.join(DEST_DIR, "sub-"+sub_id[:4])):
         os.mkdir(os.path.join(DEST_DIR, "sub-"+sub_id[:4]))
-    with open(os.path.join(DEST_DIR, "sub-"+sub_id[:4], "sub-"+sub_id[:4]+".npy"), 'wb') as outfile:
-        np.save(outfile, np.hstack((data, activity_labels, event_labels)))
+    if not os.path.isfile(os.path.join(DEST_DIR, "sub-"+sub_id[:4], "sub-"+sub_id[:4]+".npy")):    
+        with open(os.path.join(DEST_DIR, "sub-"+sub_id[:4], "sub-"+sub_id[:4]+".npy"), 'wb') as outfile:
+            np.save(outfile, np.hstack((data, activity_labels, event_labels)))
+        print(f"Data saved to ... {os.path.join(DEST_DIR, 'sub-'+sub_id[:4], 'sub-'+sub_id[:4]+'.npy'):s}")
+    else:
+        print(f"Data already exists for ... {os.path.join(DEST_DIR, 'sub-'+sub_id[:4], 'sub-'+sub_id[:4]+'.npy'):s}")
     return
 
 def prepare_rawdata(root_dir, dest_dir=""):
@@ -133,10 +137,10 @@ def prepare_rawdata(root_dir, dest_dir=""):
         dest_dir = root_dir
     
     # Get list of subject ids
-    sub_ids = [sub_id for sub_id in os.listdir(root_dir) if sub_id.startswith("40")]
+    sub_ids = [sub_id for sub_id in os.listdir(root_dir) if sub_id.startswith("50")]
     
     # Loop over the subject ids
-    for (ix_sub_id, sub_id) in enumerate(sub_ids[8:9]):
+    for (ix_sub_id, sub_id) in enumerate(sub_ids):
         print(f"{sub_id}")
         if os.path.isfile(os.path.join(root_dir, sub_id, "data.mat")):
             parse_file(os.path.join(root_dir, sub_id, "data.mat"), dest_dir=dest_dir, visualize=False)

@@ -68,10 +68,7 @@ class MyApp:
         self.frm_main = tk.Frame(master=self.root)
         
         self.fig, self.axs = plt.subplots(2, 1, sharex=True, sharey=True)
-        if len(self.data) > 0: # not an empty list
-            self.axs[0].plot()
-            self.axs[1].plot()
-        else:
+        if len(self.data) > 0: # if not an empty list
             self.axs[0].plot(
                 np.arange(self.data.shape[0]),
                 self.data[:,self._cols[1]],
@@ -83,6 +80,9 @@ class MyApp:
                 ls='-', c="tab:blue", lw=1
             )
             self.axs[0].grid(True, c=(0, 0, 0), alpha=0.1, ls=":")
+        else:
+            self.axs[0].plot()
+            self.axs[1].plot()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frm_main)        
         self.toolbar = NavigationToolbar2Tk(self.canvas, self.frm_main)
         self.toolbar.pack(side=tk.TOP, fill=tk.X, expand=0)
