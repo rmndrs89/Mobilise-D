@@ -5,7 +5,7 @@ The data were organized according to the following folder structure:
 ```
 Mobilise-D/
 ├── code/
-├── Free-Living/
+├── sourcedata/
 │   ├── 4002_PD/
 │   │   ├── data.mat
 │   │   └── infoForAlgo.mat
@@ -23,10 +23,16 @@ Mobilise-D/
 ```
 
 - `code/`: scripts
-- `Free-Living/`: for each subject, (1) the data, organized as a nested struct in MATLAB (*.mat) format, and (2) relevant demographics information.
-- `rawdata/`: for each subject, a numpy binary data file
+- `sourcedata/`: for each subject, (1) the data, organized as a nested struct in MATLAB (*.mat) format, and (2) relevant demographics information.
+- `rawdata/`: for each subject, a numpy binary data file, for use with our conv neural net to detect continuous walking periods and gait events from the 6DOF raw sensor data
 
-The `numpy` binary data file was comprised of a `numpy.ndarray` with the data from left and right foot-worn IMU, and labels for flagging (1) walking activity, or (2) specific gait events, where:
+The `numpy` binary data file was comprised of a `numpy.ndarray` with the data from left and right foot-worn IMU, and labels for flagging **walking activity**, i.e.:
+| label | activity |
+|-------|-------|
+|   0   | null  |
+|   1   | walking   |
+
+and specific **gait events**, where:
 
 | label | event |
 |-------|-------|
