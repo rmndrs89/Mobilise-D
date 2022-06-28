@@ -1,16 +1,74 @@
 Results summary
 Results in training/runs/00/bare
 Showing 10 best trials
-<keras_tuner.engine.objective.Objective object at 0x14f6fcca6dc0>
-Trial summary
-Hyperparameters:
-nb_filters: 6
-Score: 0.005980008747428656
-Trial summary
-Hyperparameters:
-nb_filters: 5
-Score: 0.005981147987768054
+<keras_tuner.engine.objective.Objective object at 0x153a1fbd1580>
 Trial summary
 Hyperparameters:
 nb_filters: 4
-Score: 0.006491785403341055
+dilations: 3
+dropout_rate: 0.0
+learning_rate: 0.0002972822919905599
+Score: 0.01216596458107233
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 6
+dropout_rate: 0.05
+learning_rate: 1.4518978150906586e-05
+Score: 0.012201529741287232
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 2
+dropout_rate: 0.0
+learning_rate: 0.0016578768832893453
+Score: 0.01326095787808299
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 6
+dropout_rate: 0.0
+learning_rate: 0.00011919145090066052
+Score: 0.014083444606512785
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 5
+dropout_rate: 0.05
+learning_rate: 0.0006100980406846861
+Score: 0.014089619275182486
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 5
+dropout_rate: 0.0
+learning_rate: 0.0001402011132796841
+Score: 0.014103113301098346
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 4
+dropout_rate: 0.05
+learning_rate: 3.903801839040575e-05
+Score: 0.014134966023266315
+Trial summary
+Hyperparameters:
+nb_filters: 4
+dilations: 5
+dropout_rate: 0.0
+learning_rate: 0.006013568341243019
+Score: 0.01839691400527954
+Trial summary
+Hyperparameters:
+nb_filters: 5
+dilations: 6
+dropout_rate: 0.05
+learning_rate: 0.0003662246405216854
+Score: 0.01839691437780857
+Trial summary
+Hyperparameters:
+nb_filters: 6
+dilations: 5
+dropout_rate: 0.05
+learning_rate: 1.3595633544053136e-05
+Score: 0.01839691884815693

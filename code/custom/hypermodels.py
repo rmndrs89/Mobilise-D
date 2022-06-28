@@ -16,6 +16,8 @@ class TCNHyperModel(kt.HyperModel):
         inputs = keras.layers.Input(shape=(None, self.nb_channels), name="inputs")
         tcn = TCN(
             nb_filters = 2**hp.Int("nb_filters", min_value=4, max_value=6, step=1),
+            dilations = [2**d for d in range(hp.Int("dilations", min_value=2, max_value=6, step=1))],
+            dropout_rate = hp.Choice("dropout_rate", [0.0, 0.05]),
             return_sequences = True,
             name = "tcn"
         )(inputs)
@@ -38,6 +40,7 @@ class TCNHyperModel(kt.HyperModel):
         model.compile(
             loss = {"gait_sequences": MyWeightedMeanSquaredError(self.weights_1),
                     "gait_events": MyWeightedCategoricalCrossentropy(self.weights_2)},
-            optimizer = keras.optimizers.Adam(learning_rate=0.001)
+            optimizer = keras.optimizers.Adam(learning_rate=hp.Float("learning_rate", min_value=1e-5, max_value=1e-2, sampling="log")),
+            metrics = [tf.keras.metrics.MeanSquaredError(), tf.keras.metrics.CategoricalCrossentropy()]
         )
         return model

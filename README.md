@@ -3,7 +3,7 @@
 ## Data organization
 The data were organized according to the following folder structure:
 ```
-MobiliseD_TVS/
+Mobilise-D/
 ├── code/
 ├── Free-Living/
 │   ├── 4002_PD/
