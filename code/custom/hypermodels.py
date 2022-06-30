@@ -40,7 +40,7 @@ class TCNHyperModel(kt.HyperModel):
         model.compile(
             loss = {"gait_sequences": MyWeightedMeanSquaredError(self.weights_1),
                     "gait_events": MyWeightedCategoricalCrossentropy(self.weights_2)},
-            optimizer = keras.optimizers.Adam(learning_rate=hp.Float("learning_rate", min_value=1e-5, max_value=1e-2, sampling="log")),
+            optimizer = keras.optimizers.Adam(learning_rate=1e-4),
             metrics = [tf.keras.metrics.MeanSquaredError(), tf.keras.metrics.CategoricalCrossentropy()]
         )
         return model

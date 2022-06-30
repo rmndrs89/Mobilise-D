@@ -213,9 +213,6 @@ def load_data(path, win_len, step_len=None, test_size=None):
     for sub_id in sub_ids:
         sub_ids_per_site[id_2_site[sub_id[4:6]]].append(sub_id)
     
-    for s in list(sub_ids_per_site.keys()):
-        print(f"{s:s}: {len(sub_ids_per_site[s]):d}")
-    
     # Split in test, validation and train set
     random.seed(123)
     test_sub_ids, val_sub_ids, train_sub_ids = [], [], []

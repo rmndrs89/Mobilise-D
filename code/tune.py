@@ -13,15 +13,17 @@ from utils.data_utils import SAMPLING_FREQUENCY, load_data
 # ROOT_DIR = "/mnt/neurogeriatrics_data/MobiliseD_TVS/rawdata" if sys.platform == "linux" else "Z:\\MobiliseD_TVS\\rawdata"
 ROOT_DIR = "/gxfs_work1/cau/sukne964/Mobilise-D"
 WIN_LEN = int(10 * SAMPLING_FREQUENCY)
-EPOCHS = 5         # number of epochs to train for
-MAX_TRIALS = 3      # total number of trials to run during the search
-EXEC_PER_TRIAL = 2  # number of models that are built and fit for each trials
-PATIENCE = 10
-CHECKPOINT_PATH = "/code/training/runs/00/checkpoint"
+EPOCHS = 150         # number of epochs to train for
+MAX_TRIALS = 20      # total number of trials to run during the search
+EXEC_PER_TRIAL = 10  # number of models that are built and fit for each trials
+PATIENCE = 5
+CHECKPOINT_PATH = "/gxfs_home/cau/sukne964/Mobilise-D/code/training/checkpoints"
+TUNER_PATH = "/gxfs_home/cau/sukne964/Mobilise-D/code/trainig/hptuning"
 
 # Define callbacks
 early_stopping_cb = tf.keras.callbacks.EarlyStopping(patience=PATIENCE, monitor="val_loss", mode="min")
 model_checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(filepath=CHECKPOINT_PATH, save_weights_only=False, save_best_only=True, monitor="val_loss", mode="min")
+reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.1, patience=3, min_lr=1e-5)
 
 def main():
     
@@ -51,8 +53,8 @@ def main():
         max_trials = MAX_TRIALS,
         executions_per_trial = EXEC_PER_TRIAL,
         overwrite = True,
-        directory = "training/runs/00",
-        project_name = "bare"
+        directory = TUNER_PATH,
+        project_name = "Mobilise-D"
     )
 
     # Use tuner to explore the search space
@@ -60,9 +62,9 @@ def main():
         X_train,
         {"gait_sequences": y1_train, "gait_events": y2_train},
         batch_size = 16,
-        epochs = EPOCHS,
+        epochs = 30,
         validation_data = [X_val, {"gait_sequences": y1_val, "gait_events": y2_val}],
-        callbacks = [early_stopping_cb],
+        callbacks = [reduce_lr_cb],
         verbose = 0
     )
 
@@ -72,7 +74,6 @@ def main():
     print(f"Number of conv filters: {2**best_hps.get('nb_filters')}")
     print(f"Dilations: {[2**d for d in range(best_hps.get('dilations'))]}")
     print(f"Dropout rate: {best_hps.get('dropout_rate')}")
-    print(f"Learning rate: {best_hps.get('learning_rate')}")
 
     # Instantiate a model based on the best hyperparams
     best_model = tuner.hypermodel.build(best_hps)
