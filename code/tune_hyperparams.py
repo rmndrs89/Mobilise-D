@@ -9,7 +9,7 @@ from custom.models import get_multi_output_model
 ROOT_DIR = "/gxfs_work1/cau/sukne964/Mobilise-D"
 
 # Define window length
-WIN_LEN = int(10*SAMPLING_FREQUENCY)
+WIN_LEN = int(6 * SAMPLING_FREQUENCY)
 
 # Set max number of epochs
 MAX_EPOCHS = 50
@@ -90,7 +90,7 @@ def main():
                     )
 
                     nb_models += 1
-                    if nb_models >1:
+                    if nb_models > 1:
                         return                   
     return
 
