@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=tune
+#SBATCH --job-name=run
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gpus-per-node=1
 #SBATCH --mem=1000
-#SBATCH --time=04:00:00
-#SBATCH --output=tune.out
-#SBATCH --error=tune.err
+#SBATCH --time=00:10:00
+#SBATCH --output=run.out
+#SBATCH --error=run.err
 #SBATCH --partition=gpu
 
 export OMP_NUM_THREADS=1
@@ -18,4 +18,4 @@ module load cuda/11.1.0 cudnn/8.1.1.33-11.2
 
 source ~/Mobilise-D/envs/bin/activate
 
-python ~/Mobilise-D/code/tune_hyperparams.py
+python ~/Mobilise-D/code/run.py
