@@ -1,17 +1,13 @@
 import tensorflow as tf
 from tensorflow import keras
 from tcn import TCN, tcn_full_summary
-from .losses import MyWeightedCategoricalCrossentropy, MyWeightedMeanSquaredError
+from .losses import MyWeightedCategoricalCrossentropy, MyWeightedMeanSquaredError, MyWeightedBinaryCrossentropy
 
-def get_gait_model(nb_channels, nb_classes, **kwargs):
-    nb_filters = kwargs.get('nb_filters', 64)
-    kernel_size = kwargs.get('kernel_size', 3)
-    dilations = kwargs.get('dilations', [2**d for d in range(7)])
+def get_model(num_input_channels, **kwargs):
 
-    inputs = keras.layers.Input(shape=(None, nb_channels), name='inputs')
-    hidden = TCN(nb_filters = nb_filters,
-        kernel_size = kernel_size,
-        dilations = dilations, 
+    # Define the model's layers
+    inputs = keras.layers.Input(shape=(None, num_input_channels), name='inputs')
+    hidden = TCN(**kwargs, 
         return_sequences = True,
         use_batch_norm = True,
         use_skip_connections = True,
@@ -20,11 +16,12 @@ def get_gait_model(nb_channels, nb_classes, **kwargs):
         activation = 'sigmoid',
         name = 'outputs')(hidden)
 
+    # Define and compile the model
     model = keras.models.Model(inputs=inputs, outputs=outputs, name='gait_model')
     model.compile(
-        loss = MyWeightedMeanSquaredError(weights=0.01),
+        loss = MyWeightedBinaryCrossentropy(weight=0.01),
         optimizer = keras.optimizers.Adam(learning_rate = 1e-4),
-        metrics = [keras.metrics.Accuracy()]
+        metrics = [keras.metrics.BinaryAccuracy()]
     )
     return model
 
@@ -74,7 +71,7 @@ def get_multi_output_model(nb_channels, nb_classes, **kwargs):
     model = keras.models.Model(inputs=inputs, outputs=[outputs_1, outputs_2], name='tcn_model')
     
     model.compile(
-        loss = {'gait_sequences': MyWeightedMeanSquaredError(weights=0.01), 
+        loss = {'gait_sequences': MyWeightedMeanSquaredError(weight=0.01), 
                 'gait_events': MyWeightedCategoricalCrossentropy(weights=[[0.1, 0.225, 0.225, 0.225, 0.225]])},
         metrics = [keras.metrics.BinaryAccuracy(), keras.metrics.CategoricalAccuracy()],
         optimizer = keras.optimizers.Adam(learning_rate=0.001)

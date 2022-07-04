@@ -237,3 +237,80 @@ def load_data(path, win_len, step_len=None, test_size=None):
     return (train_dataset[:,:,:-2], train_dataset[:,:,-2][..., np.newaxis], train_dataset[:,:,-1][..., np.newaxis]), \
         (val_dataset[:,:,:-2], val_dataset[:,:,-2][..., np.newaxis], val_dataset[:,:,-1][..., np.newaxis]), \
             (test_dataset[:,:,:-2], test_dataset[:,:,-2][..., np.newaxis], test_dataset[:,:,-1][..., np.newaxis])
+
+def split_train_test(path, test_size=0.25, seed=None):
+    """Splits the subjects into separate sets for training, validation 
+    and testing purposes.
+
+    Parameters
+    ----------
+    path : str
+        Relative or absolute path to the base/root data directory.
+    test_size : float, optional
+        Proportion of subjects that is used for testing and validation, by default 0.25
+    seed : int, optional
+        For reproducible results, define a seed, by default None
+
+    Returns
+    -------
+    _, _, _ : list, list, list
+        List of filenames for training, validation and testing, respectively.
+    """
+    # Map subject ids to specific study site
+    i2s = {"10": "UNEW", "20": "USFD", "30": "TASMC", "40": "CAU", "50":"RBMF"}
+
+    # Set seed
+    seed = np.random.seed(123) if seed is None else np.random.seed(seed)
+
+    # Get a list of subject ids
+    sub_ids = [sub_id for sub_id in os.listdir(path) if sub_id.startswith("sub-")]
+    sub_ids_per_site = {v: [] for _, v in i2s.items()}
+    for sub_id in sub_ids:
+        sub_ids_per_site[i2s[sub_id[4:6]]].append(sub_id)
+
+    # Split subject ids in training, validation and test set
+    train_sub_ids, val_sub_ids, test_sub_ids = [], [], []
+    for _, ids in sub_ids_per_site.items():
+        num = int(len(ids)*test_size)
+        indices = np.arange(len(ids))
+        np.random.shuffle(indices)
+        test_sub_ids += [ids[idx] for idx in indices[:num]]
+        val_sub_ids += [ids[idx] for idx in indices[num:2*num]]
+        train_sub_ids += [ids[idx] for idx in indices[2*num:]]
+
+    # Return list of filenames for each set
+    return [os.path.join(path, sub_id, sub_id+".npy") for sub_id in train_sub_ids], \
+        [os.path.join(path, sub_id, sub_id+".npy") for sub_id in val_sub_ids], \
+        [os.path.join(path, sub_id, sub_id+".npy") for sub_id in test_sub_ids]
+
+def get_data_generator(list_files, win_len, step_len=None):
+    """Gets a data generator that is callable for use with Keras.
+
+    Parameters
+    ----------
+    list_files : list
+        A list of filenames.
+    win_len : int
+        The length of a single sample, in number of samples.
+    step_len : int, optional
+        The number of samples that the windows slides forward, by default None
+
+    Returns
+    -------
+    _ : 
+        A data generator for use with tf.data.Dataset.from_generator.
+
+    Yields
+    ------
+    data, labels : numpy array, numpy array
+        Sensor data, labels
+    """
+    step_len = win_len if step_len is None else step_len
+
+    def data_gen():
+        for filename in list_files:
+            with open(filename, 'rb') as infile:
+                data = np.load(infile)
+            for idx in range(0, data.shape[0] - win_len + 1, step_len):
+                yield data[idx:idx+win_len,:-2], data[idx:idx+win_len,-2][..., np.newaxis]
+    return data_gen
