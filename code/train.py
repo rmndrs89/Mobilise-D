@@ -1,4 +1,3 @@
-from gc import callbacks
 import os
 import numpy as np
 import tensorflow as tf
@@ -11,7 +10,7 @@ WIN_LEN = int(30*SAMPLING_FREQUENCY)
 BATCH_SIZE = 16
 
 # Define model checkpoint
-CHECKPOINT_PATH = "/code/my_training"
+CHECKPOINT_PATH = "my_training/"
 
 def main():
     # Split files into training, validation and test set
