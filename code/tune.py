@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 import os
-from train import BATCH_SIZE
 from utils.data_utils import SAMPLING_FREQUENCY, get_data_generator, split_train_test
 from custom.models import get_multi_output_model
 
