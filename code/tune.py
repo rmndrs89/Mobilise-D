@@ -31,7 +31,7 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
 )
 
 csv_logger = tf.keras.callbacks.CSVLogger(
-    filename = os.path.join(CHECKPOINT_FILEPATH, "trainig.log"),
+    filename = os.path.join(CHECKPOINT_FILEPATH, "training.log"),
     separator = ",",
     append = False
 )
