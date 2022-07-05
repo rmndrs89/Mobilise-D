@@ -16,6 +16,7 @@ NUM_INPUT_CHANNELS = 12
 
 # Set max number of epochs
 MAX_EPOCHS = 50
+BATCH_SIZE = 16
 
 # Define model checkpoint pathlogs filepath
 CHECKPOINT_FILEPATH = "/gxfs_home/cau/sukne964/Mobilise-D/code/train/tune/01"
@@ -27,6 +28,13 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
     patience = 5,
     verbose = 0,
     min_lr = 1e-5
+)
+
+early_stopping = tf.keras.callbacks.EarlyStopping(
+    monitor = "val_loss",
+    patience = 5,
+    verbose = 0,
+    mode = "min"
 )
 
 csv_logger = tf.keras.callbacks.CSVLogger(
@@ -84,10 +92,10 @@ def main():
     # Train model on data
     history = model.fit(
         train_ds,
-        epochs = 10,
+        epochs = MAX_EPOCHS,
         steps_per_epoch = 1000,
         validation_data = val_ds,
-        callbacks = [reduce_lr,
+        callbacks = [early_stopping,
                      csv_logger,
                      model_checkpoint]
     )

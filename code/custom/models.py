@@ -68,6 +68,6 @@ def get_multi_output_model(num_input_channels, **kwargs):
         loss = {'gait_sequences': MyWeightedBinaryCrossentropy(weight=0.01), 
                 'gait_events': MyWeightedCategoricalCrossentropy(weights=[[0.1, 0.225, 0.225, 0.225, 0.225]])},
         metrics = [keras.metrics.BinaryAccuracy(), keras.metrics.CategoricalAccuracy()],
-        optimizer = keras.optimizers.Adam(learning_rate=0.001)
+        optimizer = keras.optimizers.Adam(learning_rate=1e-4)
     )
     return model
