@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import tensorflow as tf
 import random
 import scipy.io
 
@@ -312,5 +313,9 @@ def get_data_generator(list_files, win_len, step_len=None):
             with open(filename, 'rb') as infile:
                 data = np.load(infile)
             for idx in range(0, data.shape[0] - win_len + 1, step_len):
-                yield data[idx:idx+win_len,:-2], data[idx:idx+win_len,-2][..., np.newaxis]
+                inputs = data[idx:idx+win_len,:-2]
+                outputs_1 = data[idx:idx+win_len,-2][..., np.newaxis]  # gait sequences
+                outputs_2 = data[idx:idx+win_len,-1][..., np.newaxis]  # gait events
+                outputs_2 = tf.keras.utils.to_categorical(outputs_2, num_classes=5)
+                yield inputs, {"gait_sequences": outputs_1, "gait_events": outputs_2}
     return data_gen

@@ -3,14 +3,14 @@ import numpy as np
 import tensorflow as tf
 from tcn import TCN
 from utils.data_utils import SAMPLING_FREQUENCY, split_train_test, get_data_generator
-from custom.models import get_model
+from custom.models import get_model, get_multi_output_model
 
 BASE_DIR = "/gxfs_work1/cau/sukne964/Mobilise-D"
 WIN_LEN = int(30*SAMPLING_FREQUENCY)
 BATCH_SIZE = 16
 
 # Define model checkpoint
-CHECKPOINT_PATH = "my_training/"
+CHECKPOINT_PATH = "my_training_2/"
 
 def main():
     # Split files into training, validation and test set
@@ -24,7 +24,9 @@ def main():
         get_data_generator(list_files=train_filenames, win_len=WIN_LEN),
         output_signature=(
             tf.TensorSpec(shape=(WIN_LEN, 12), dtype=tf.float32),
-            tf.TensorSpec(shape=(WIN_LEN, 1), dtype=tf.float32)
+            {"gait_sequences": tf.TensorSpec(shape=(WIN_LEN, 1), dtype=tf.float32),
+             "gait_events": tf.TensorSpec(shape=(WIN_LEN, 5), dtype=tf.float32)
+            }
         )
     )
 
@@ -32,7 +34,9 @@ def main():
         get_data_generator(list_files=val_filenames, win_len=WIN_LEN),
         output_signature=(
             tf.TensorSpec(shape=(WIN_LEN, 12), dtype=tf.float32),
-            tf.TensorSpec(shape=(WIN_LEN, 1), dtype=tf.float32)
+            {"gait_sequences": tf.TensorSpec(shape=(WIN_LEN, 1), dtype=tf.float32),
+             "gait_events": tf.TensorSpec(shape=(WIN_LEN, 5), dtype=tf.float32)
+            }
         )
     )
 
@@ -41,7 +45,7 @@ def main():
     val_ds = val_ds.batch(batch_size=BATCH_SIZE)
 
     # Get model
-    model = get_model(num_input_channels=12,
+    model = get_multi_output_model(num_input_channels=12,
                       **{"nb_filters": 16, 
                          "dilations": (1, 2, 4, 8, 16, 32, 64),
                          "kernel_size": 3})
