@@ -1,3 +1,4 @@
+from unicodedata import name
 import tensorflow as tf
 from tensorflow import keras
 from tcn import TCN, tcn_full_summary
@@ -55,16 +56,14 @@ def get_multi_output_model(num_input_channels, threshold=None, **kwargs):
                  use_batch_norm = True,
                  return_sequences = True,
                  name='tcn')(inputs)
+    outputs_1 = keras.layers.Dense(units = 1,
+                                   activation = "sigmoid",
+                                   name = "gait_sequences")(hidden)
     if threshold is not None:
-        outputs_1 = keras.layers.Dense(units = 1,
-                                       activation = "sigmoid",
-                                       name = "outputs_1")(hidden)
-        outputs_1 = keras.layers.Lambda(lambda x: tf.where(x > threshold, 1.0, 0.0), name='gait_sequences')(outputs_1)
+        thresh = keras.layers.Lambda(lambda x: tf.where(x > threshold, 1.0, 0.0), name="thresh")(outputs_1)
+        concat = keras.layers.Concatenate(name="concat")([hidden, thresh])
     else:
-        outputs_1 = keras.layers.Dense(units = 1,
-                                       activation = "sigmoid",
-                                       name = "gait_sequences")(hidden)
-    concat = keras.layers.Concatenate(name = 'concat')([hidden, outputs_1])
+        concat = keras.layers.Concatenate(name = 'concat')([hidden, outputs_1])
     outputs_2 = keras.layers.Dense(units=num_output_classes,
                                    activation = 'softmax',
                                    name = 'gait_events')(concat)
