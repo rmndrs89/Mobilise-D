@@ -27,7 +27,7 @@ def main():
     # Get trained model
     trained_model = tf.keras.models.load_model(
         "./train/tune/01", custom_objects={
-            "MyWeightedBinaryCrossentropy": MyWeightedBinaryCrossentropy(0.01),
+            "MyWeightedBinaryCrossentropy": MyWeightedBinaryCrossentropy(weight=0.01, threshold=0.5),
             "MyWeightedCategoricalCrossentropy": MyWeightedCategoricalCrossentropy([[0.1, 0.225, 0.225, 0.225, 0.225]])
         }
     )
