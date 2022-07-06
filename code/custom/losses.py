@@ -32,14 +32,17 @@ class MyWeightedMeanSquaredError(keras.losses.Loss):
         return {**base_config, "weights": self.weight}
 
 class MyWeightedBinaryCrossentropy(keras.losses.Loss):
-    def __init__(self, weight, **kwargs):
+    def __init__(self, weight, threshold=None, **kwargs):
         super().__init__(**kwargs)
         self.weight = weight
+        self.threshold = threshold
 
     def call(self, y_true, y_pred):
+        if self.threshold is not None:
+            y_pred = tf.where(y_pred > self.threshold, 1., 0.)
         loss = K.mean(K.binary_crossentropy(y_true, y_pred) * (y_true + self.weight), axis=-1)
         return loss
 
     def get_config(self):
         base_config = super().get_config()
-        return {**base_config, "weight": self.weight}
+        return {**base_config, "weight": self.weight, "threshold": self.threshold}

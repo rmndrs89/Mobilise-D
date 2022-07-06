@@ -19,7 +19,7 @@ MAX_EPOCHS = 50
 BATCH_SIZE = 16
 
 # Define model checkpoint pathlogs filepath
-CHECKPOINT_FILEPATH = "/gxfs_home/cau/sukne964/Mobilise-D/code/train/tune/01"
+CHECKPOINT_FILEPATH = "/gxfs_home/cau/sukne964/Mobilise-D/code/train/tune/04"
 
 # Define callbacks
 reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
@@ -84,7 +84,7 @@ def main():
     # continuous walking periods and discrete gait events
     model = get_multi_output_model(
         num_input_channels=NUM_INPUT_CHANNELS,
-        **{"nb_filters": 16,
+        **{"nb_filters": 32,
            "dilations": [1, 2, 4, 8, 16, 32, 64],
            "kernel_size": 5}
     )
